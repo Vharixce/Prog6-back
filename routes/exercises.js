@@ -12,16 +12,15 @@ const exerciseList = (exercise) => ({
     description: exercise.description,
     _links: {
         self: {
-            href: `${process.env.LOCALURL}/exercises/${exercise._id}`
+            href: `${process.env.LOCALURL}/exercises/${exercise._id}`,
         },
         collection: {
-            href: `${process.env.LOCALURL}/exercises`
-        }
-
-    }
+            href: `${process.env.LOCALURL}/exercises`,
+        },
+    },
 });
 
-
+// GET all exercises
 router.get("/", async (req, res) => {
     try {
         const exercises = await Exercise.find({});
@@ -48,23 +47,30 @@ router.options("/", (req, res) => {
     res.status(204).send(); // No Content response
 });
 
-// PUT route voor het bewerken van een bestaande oefening
+// PUT route to edit an existing exercise
 router.put("/:id", async (req, res) => {
     try {
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        const id = req.params.id;
+
+        // Validate ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: "Invalid ID format" });
         }
 
         const { title, muscles, description } = req.body;
 
+        // Ensure at least one field is provided for update
         if (!title && !muscles && !description) {
-            return res.status(400).json({ error: "At least one field (title, muscles, description) must be provided to update" });
+            return res.status(400).json({
+                error: "At least one field (title, muscles, description) must be provided to update",
+            });
         }
 
+        // Find and update the document
         const updatedExercise = await Exercise.findByIdAndUpdate(
-            req.params.id,
+            id,
             { title, muscles, description },
-            { new: true, runValidators: true }
+            { new: true, runValidators: true } // Return the updated document
         );
 
         if (!updatedExercise) {
@@ -73,15 +79,12 @@ router.put("/:id", async (req, res) => {
 
         res.json(updatedExercise);
     } catch (e) {
-        console.error(e);
-        res.status(400).json({ error: e.message });
+        console.error("Error in PUT route:", e.message);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 });
 
-
-
-
-// Detail route (GET /exercises/:id)
+// GET exercise by ID
 router.get("/:id", async (req, res) => {
     try {
         const baseUrl = `${req.protocol}://${req.get("host")}`;
@@ -91,7 +94,7 @@ router.get("/:id", async (req, res) => {
             return res.status(404).json({ error: "Exercise not found" });
         }
 
-        // Voeg het correcte _links-object toe
+        // Add the correct _links object
         res.json({
             ...exercise.toJSON(),
             _links: {
@@ -109,8 +112,7 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-
-// POST route for seeding database (POST /exercises/seed)
+// POST route to create a new exercise
 router.post("/", async (req, res) => {
     try {
         const { title, muscles, description } = req.body;
@@ -123,7 +125,6 @@ router.post("/", async (req, res) => {
             title,
             muscles,
             description,
-
         });
 
         res.status(201).json(exercise);
@@ -132,5 +133,11 @@ router.post("/", async (req, res) => {
         res.status(400).json({ error: e.message });
     }
 });
+
+
+
+
+
+
 
 export default router;

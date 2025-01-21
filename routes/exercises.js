@@ -47,6 +47,14 @@ router.options("/", (req, res) => {
     res.status(204).send(); // No Content response
 });
 
+// OPTIONS route for /exercises/:id
+router.options("/:id", (req, res) => {
+    res.header("Allow", "GET,PUT,DELETE,OPTIONS");
+    res.status(204).send(); // No Content response
+});
+
+
+
 // PUT route to edit an existing exercise
 router.put("/:id", async (req, res) => {
     try {
@@ -138,28 +146,26 @@ router.delete("/:id", async (req, res) => {
     try {
         const id = req.params.id;
 
-        // Valideer ObjectId
+        // Valideer of het een geldig ObjectId is
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ error: "Invalid ID format" });
+            return res.status(400).json({ error: "Invalid ID format" }); // 400: Bad Request
         }
 
         // Zoek en verwijder de oefening
         const deletedExercise = await Exercise.findByIdAndDelete(id);
 
         if (!deletedExercise) {
-            return res.status(404).json({ error: "Exercise not found" });
+            return res.status(404).json({ error: "Exercise not found" }); // 404: Not Found
         }
 
-        // Stuur een correcte status en respons terug
-        res.status(200).json({
-            message: "Exercise successfully deleted",
-            deletedExercise, // Optioneel: de verwijderde oefening teruggeven
-        });
+        // Succesvolle verwijdering
+        return res.status(204).send(); // 204: No Content
     } catch (e) {
         console.error("Error in DELETE route:", e.message);
-        res.status(400).json({ error: "Internal Server Error" });
+        return res.status(500).json({ error: "Internal Server Error" }); // 500: Internal Server Error
     }
 });
+
 
 
 

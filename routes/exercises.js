@@ -80,7 +80,7 @@ router.put("/:id", async (req, res) => {
         res.json(updatedExercise);
     } catch (e) {
         console.error("Error in PUT route:", e.message);
-        res.status(500).json({ error: "Internal Server Error" });
+        res.status(400).json({ error: "Internal Server Error" });
     }
 });
 
@@ -134,6 +134,32 @@ router.post("/", async (req, res) => {
     }
 });
 
+router.delete("/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        // Valideer ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: "Invalid ID format" });
+        }
+
+        // Zoek en verwijder de oefening
+        const deletedExercise = await Exercise.findByIdAndDelete(id);
+
+        if (!deletedExercise) {
+            return res.status(404).json({ error: "Exercise not found" });
+        }
+
+        // Stuur een correcte status en respons terug
+        res.status(200).json({
+            message: "Exercise successfully deleted",
+            deletedExercise, // Optioneel: de verwijderde oefening teruggeven
+        });
+    } catch (e) {
+        console.error("Error in DELETE route:", e.message);
+        res.status(400).json({ error: "Internal Server Error" });
+    }
+});
 
 
 

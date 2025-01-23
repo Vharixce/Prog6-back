@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 
 const router = express.Router();
 
-// Collection route (GET /exercises)
+// Helper voor het transformeren van een oefening
 const exerciseList = (exercise) => ({
     id: exercise._id,
     title: exercise.title,
@@ -22,10 +22,12 @@ const exerciseList = (exercise) => ({
 
 // GET all exercises
 router.get("/", async (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', '*');
     try {
         const exercises = await Exercise.find({});
         res.json({
-            items: exercises.map(exerciseList), // Transformed items
+            items: exercises.map(exerciseList),
             _links: {
                 self: {
                     href: `${process.env.LOCALURL}/exercises`,
@@ -43,20 +45,26 @@ router.get("/", async (req, res) => {
 
 // OPTIONS route for /exercises
 router.options("/", (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', '*');
+    res.header('Access-Control-Allow-Methods', '*')
     res.header("Allow", "GET,POST,OPTIONS");
     res.status(204).send(); // No Content response
 });
 
 // OPTIONS route for /exercises/:id
 router.options("/:id", (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', '*');
+    res.header('Access-Control-Allow-Methods', '*')
     res.header("Allow", "GET,PUT,DELETE,OPTIONS");
-    res.status(204).send(); // No Content response
+    res.status(204).send();
 });
-
-
 
 // PUT route to edit an existing exercise
 router.put("/:id", async (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', '*');
     try {
         const id = req.params.id;
 
@@ -67,18 +75,16 @@ router.put("/:id", async (req, res) => {
 
         const { title, muscles, description } = req.body;
 
-        // Ensure at least one field is provided for update
         if (!title && !muscles && !description) {
             return res.status(400).json({
                 error: "At least one field (title, muscles, description) must be provided to update",
             });
         }
 
-        // Find and update the document
         const updatedExercise = await Exercise.findByIdAndUpdate(
             id,
             { title, muscles, description },
-            { new: true, runValidators: true } // Return the updated document
+            { new: true, runValidators: true }
         );
 
         if (!updatedExercise) {
@@ -94,6 +100,8 @@ router.put("/:id", async (req, res) => {
 
 // GET exercise by ID
 router.get("/:id", async (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', '*');
     try {
         const baseUrl = `${req.protocol}://${req.get("host")}`;
         const exercise = await Exercise.findById(req.params.id);
@@ -102,7 +110,6 @@ router.get("/:id", async (req, res) => {
             return res.status(404).json({ error: "Exercise not found" });
         }
 
-        // Add the correct _links object
         res.json({
             ...exercise.toJSON(),
             _links: {
@@ -122,6 +129,8 @@ router.get("/:id", async (req, res) => {
 
 // POST route to create a new exercise
 router.post("/", async (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', '*');
     try {
         const { title, muscles, description } = req.body;
 
@@ -142,34 +151,28 @@ router.post("/", async (req, res) => {
     }
 });
 
+// DELETE route to remove an exercise
 router.delete("/:id", async (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', '*');
     try {
         const id = req.params.id;
 
-        // Valideer of het een geldig ObjectId is
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ error: "Invalid ID format" }); // 400: Bad Request
+            return res.status(400).json({ error: "Invalid ID format" });
         }
 
-        // Zoek en verwijder de oefening
         const deletedExercise = await Exercise.findByIdAndDelete(id);
 
         if (!deletedExercise) {
-            return res.status(404).json({ error: "Exercise not found" }); // 404: Not Found
+            return res.status(404).json({ error: "Exercise not found" });
         }
 
-        // Succesvolle verwijdering
-        return res.status(204).send(); // 204: No Content
+        return res.status(204).send(); // No Content
     } catch (e) {
         console.error("Error in DELETE route:", e.message);
-        return res.status(500).json({ error: "Internal Server Error" }); // 500: Internal Server Error
+        return res.status(500).json({ error: "Internal Server Error" });
     }
 });
-
-
-
-
-
-
 
 export default router;

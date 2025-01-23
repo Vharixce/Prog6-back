@@ -1,16 +1,19 @@
 {
-  "name": "Prog6-back",
+  "name": "prog6-back",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "start": "node index.js",
     "dev": "node --env-file=.env --watch index.js"
   },
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.21.2",
     "mongoose": "^8.9.5"
-  }
+  },
+  "keywords": [],
+  "description": ""
 }

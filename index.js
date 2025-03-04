@@ -6,7 +6,6 @@ import exerciseRouter from './routes/exercises.js';
 
 const app = express();
 
-// Configureer en gebruik CORS
 
 // Middleware voor JSON-gegevens
 app.use(express.json());
